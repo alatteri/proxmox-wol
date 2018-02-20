@@ -22,6 +22,7 @@ exit $?
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #    dmacias - added fixes for ether proto 0x0842
+#    R.A.W. - added LXC containers
 import os
 import pcap
 import sys
@@ -40,35 +41,34 @@ class ProxmoxWakeOnLan:
 	    filepath = confpath + file
 	    for line in open(filepath):
                 if macaddress.upper() in line.upper():
-		    return os.path.splitext(os.path.basename(file))[0]
+		    return os.path.splitext(os.path.basename(file))[0] + " qm"
 	confpath = '/etc/pve/lxc/'
 	for file in os.listdir(confpath):
 	    filepath = confpath + file
 	    for line in open(filepath):
                 if macaddress.upper() in line.upper():
-		    return os.path.splitext(os.path.basename(file))[0]
+			return os.path.splitext(os.path.basename(file))[0] + " pct"
         return False
 
     @staticmethod
     def StartServerByMACAddress(mac):
         #code to check MAC address
-	foundvmid = ProxmoxWakeOnLan.CheckConfForMac(mac)
-	if foundvmid:
-	    checkVM = "qm status " + foundvmid
+	foundvm = ProxmoxWakeOnLan.CheckConfForMac(mac)
+	if foundvm:
+	    foundlist = foundvm.split()
+	    foundvmid = foundlist[0]
+	    command = foundlist[1]
+	    checkVM = command + " status " + foundvmid
             status = os.popen(checkVM).read()
-            if "does not exist" in status:
-                checkVM = "pct status " + foundvmid
-                status = os.popen(checkVM).read()
             if "running" in status:
 		logging.info("Virtual machine already running: %s", foundvmid)
                 return False
             else:
 		logging.info("Waking up %s", foundvmid)
-                startVM = "qm start " + foundvmid
-                os.system(startVM)
-                startVM = "pct start " + foundvmid
+                startVM = command + " start " + foundvmid
                 os.system(startVM)
                 return True
+		## logging disabled for non-existing MAC, uncomment below line for debugging
        	#logging.info("Didn't find a VM with MAC address %s", mac)
         return False
 
