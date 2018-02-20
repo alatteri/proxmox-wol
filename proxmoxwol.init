@@ -9,7 +9,7 @@
 # Description:       Enable service provided by daemon.
 ### END INIT INFO
 
-cmd="python /root/scripts/proxmoxwol.py"
+cmd="python /etc/pve-wol/proxmoxwol.py"
 int="vmbr0"
 
 name=`basename $0`
