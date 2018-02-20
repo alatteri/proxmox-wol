@@ -34,8 +34,14 @@ files = [fn for fn in os.listdir('/etc/pve/qemu-server') if fn.endswith('.conf')
 
 class ProxmoxWakeOnLan:
     @staticmethod
-    def CheckConfForMac(macaddress):	
+    def CheckConfForMac(macaddress):
 	confpath = '/etc/pve/qemu-server/'
+	for file in os.listdir(confpath):
+	    filepath = confpath + file
+	    for line in open(filepath):
+                if macaddress.upper() in line.upper():
+		    return os.path.splitext(os.path.basename(file))[0]
+	confpath = '/etc/pve/lxc/'
 	for file in os.listdir(confpath):
 	    filepath = confpath + file
 	    for line in open(filepath):
@@ -50,6 +56,9 @@ class ProxmoxWakeOnLan:
 	if foundvmid:
 	    checkVM = "qm status " + foundvmid
             status = os.popen(checkVM).read()
+            if "does not exist" in status:
+                checkVM = "pct status " + foundvmid
+                status = os.popen(checkVM).read()
             if "running" in status:
 		logging.info("Virtual machine already running: %s", foundvmid)
                 return False
@@ -57,8 +66,10 @@ class ProxmoxWakeOnLan:
 		logging.info("Waking up %s", foundvmid)
                 startVM = "qm start " + foundvmid
                 os.system(startVM)
+                startVM = "pct start " + foundvmid
+                os.system(startVM)
                 return True
-       	logging.info("Didn't find a VM with MAC address %s", mac)
+       	#logging.info("Didn't find a VM with MAC address %s", mac)
         return False
 
     @staticmethod
