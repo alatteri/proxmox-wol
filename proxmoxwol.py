@@ -61,7 +61,8 @@ class ProxmoxWakeOnLan:
 	    checkVM = command + " status " + foundvmid
             status = os.popen(checkVM).read()
             if "running" in status:
-		logging.info("Virtual machine already running: %s", foundvmid)
+		## logging disabled for already running, uncomment below line for debugging
+		#logging.debug("Virtual machine already running: %s", foundvmid)
                 return False
             else:
 		logging.info("Waking up %s", foundvmid)
@@ -69,7 +70,7 @@ class ProxmoxWakeOnLan:
                 os.system(startVM)
                 return True
 		## logging disabled for non-existing MAC, uncomment below line for debugging
-       	#logging.info("Didn't find a VM with MAC address %s", mac)
+       	#logging.debug("Didn't find a VM with MAC address %s", mac)
         return False
 
     @staticmethod
